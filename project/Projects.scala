@@ -22,6 +22,11 @@ object Projects extends Build {
       `akka-ddd-examples`
     )
 
+  lazy val `akka-ddd-macros` = module("macros", basicSettings)
+    .settings(
+      libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _)
+    )
+
   lazy val `akka-ddd-core` = module("core", basicSettings)
     .settings(unidocSettings: _*)
     .settings(assemblySettings: _*)
@@ -29,7 +34,7 @@ object Projects extends Build {
       libraryDependencies ++=
         compile(typesafeConfig, akkaActor, akkaContrib, akkaPersistence, akkaSlf4j) ++
         test(scalaTest, scalaCheck, scalaMock, akkaTest)
-    )
+    ).dependsOn(`akka-ddd-macros`)
 
   lazy val `akka-ddd-examples` = module("examples", basicSettings)
     .settings(noPublishing: _*)
