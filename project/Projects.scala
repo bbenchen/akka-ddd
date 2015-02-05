@@ -25,6 +25,8 @@ object Projects extends Build {
   lazy val `akka-ddd-macros` = module("macros", basicSettings)
     .settings(
       libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _)
+    ).settings(libraryDependencies ++=
+      test(scalaTest, scalaCheck)
     )
 
   lazy val `akka-ddd-core` = module("core", basicSettings)
