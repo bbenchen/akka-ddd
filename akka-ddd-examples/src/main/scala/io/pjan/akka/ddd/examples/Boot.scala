@@ -1,14 +1,11 @@
 package io.pjan.akka.ddd.examples
 
 import akka.actor.ActorSystem
-import io.pjan.akka.ddd.AggregateManager
 import io.pjan.akka.ddd.message.CommandMessage
 
 object Boot extends App {
 
   implicit val system = ActorSystem("access")
-
-  val personManager = AggregateManager[Person]
 
   val personId = PersonId(java.util.UUID.randomUUID())
   val person = system.actorOf(Person.props(), personId.value.toString)
