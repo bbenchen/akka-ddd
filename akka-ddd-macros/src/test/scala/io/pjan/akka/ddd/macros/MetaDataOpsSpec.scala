@@ -27,6 +27,7 @@ class MetaDataOpsSpec extends WordSpecLike
 
             if (m1 != m2) startDummy should not equal (endDummy)
             MetaDataOps.withMetaData(startDummy, m2) should equal(endDummy)
+            startDummy should equal (MapMeta(n, m1))
           }
         }
         "the metadata is of type Any" in {
@@ -36,6 +37,7 @@ class MetaDataOpsSpec extends WordSpecLike
 
             if (m1 != m2) startDummy should not equal (endDummy)
             MetaDataOps.withMetaData(startDummy, m2) should equal(endDummy)
+            startDummy should equal (AnyMeta(n, m1))
           }
         }
       }
