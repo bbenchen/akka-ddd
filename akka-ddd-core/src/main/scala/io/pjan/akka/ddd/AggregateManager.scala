@@ -4,6 +4,7 @@ import akka.actor.Actor.Receive
 import akka.actor._
 import io.pjan.akka.ddd.command.Command
 import io.pjan.akka.ddd.message.CommandMessage
+import io.pjan.akka.ddd.support.Passivation.Passivate
 import scala.reflect.ClassTag
 
 
@@ -21,6 +22,8 @@ class AggregateManager[AR <: AggregateRoot[_, _]](implicit arClassTag: ClassTag[
                       context.actorOf(Props(arClassTag.runtimeClass.asInstanceOf[Class[AR]]), resolve(cmd))
 
       aggregate forward CommandMessage(cmd)
+    case Passivate(msg) =>
+      sender ! msg
   }
 
   def resolve(cmd: Command[_]): String = cmd.aggregateId.toString
