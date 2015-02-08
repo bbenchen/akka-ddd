@@ -1,8 +1,11 @@
 package io.pjan.akka.ddd.examples
 
-import akka.actor.{ActorLogging, Props}
+import akka.actor.{PoisonPill, ActorLogging, Props}
 import io.pjan.akka.ddd._
 import io.pjan.akka.ddd.state.AggregateState
+import io.pjan.akka.ddd.support.Passivation.{Passivate, PassivationConfig}
+
+import scala.concurrent.duration._
 
 
 case class PersonId(value: java.util.UUID) extends AggregateUuid
@@ -33,6 +36,8 @@ object Person {
 class Person extends AggregateRoot[PersonId, Person.PersonState] with ActorLogging {
   import Person._
 
+  override def passivationConfig: PassivationConfig = PassivationConfig(timeout = 5.seconds)
+
   val id: PersonId = PersonId(java.util.UUID.fromString(self.path.name))
 
   override def initializeState: InitializeState = {
@@ -46,13 +51,16 @@ class Person extends AggregateRoot[PersonId, Person.PersonState] with ActorLoggi
   override def handleCommand: HandleCommand = uninitialized
 
   def uninitialized: HandleCommand = {
-    case Create(personId, name) => if (!isInitialized) materialize(PersonCreated(personId, name)) else throw new RuntimeException("already initialized")
+    case Create(personId, name) =>
+      if (!isInitialized) materialize(PersonCreated(personId, name))
+      else throw new RuntimeException("already initialized")
   }
 
   def initialized: HandleCommand = {
     case ChangeName(personId, name) =>
       println(toEventMessage(PersonNameChanged(personId, name)))
       materialize(PersonNameChanged(personId, name))
-    case LogState(_)                => log.info(state.toString)
+    case LogState(_) =>
+      log.info(state.toString)
   }
 }
