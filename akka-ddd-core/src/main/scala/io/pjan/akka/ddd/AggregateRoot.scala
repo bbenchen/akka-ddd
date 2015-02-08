@@ -1,13 +1,16 @@
 package io.pjan.akka.ddd
 
-import akka.actor.Actor
+import akka.actor.{ReceiveTimeout, Actor}
 import akka.actor.Status.Failure
 import akka.persistence.PersistentActor
 import io.pjan.akka.ddd.command.Command
 import io.pjan.akka.ddd.event.Event
 import io.pjan.akka.ddd.message._
 import io.pjan.akka.ddd.state.AggregateState
+import io.pjan.akka.ddd.support.Passivation.{Passivate, PassivationConfig}
 import io.pjan.akka.ddd.support._
+
+import scala.concurrent.duration._
 
 object AggregateRoot {
   /**
@@ -36,7 +39,8 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
       with AggregateStateKeeper[State]
       with CommandHandler[Id]
       with EventHandler
-      with StateTransitions[Id] {
+      with StateTransitions[Id]
+      with Passivation {
 
   type InitializeState = AggregateRoot.InitializeState[State]
   type HandleEvent     = AggregateRoot.HandleEvent
@@ -64,6 +68,8 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
    */
   def transition: Transition = StateTransitions.emptyBehavior[Id]
 
+  def passivationConfig: PassivationConfig
+
   def materialize(event: Event): Unit = {
     persistAsEventMessage(event){
       persistedEventMessage => {
@@ -80,6 +86,11 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
 
   override def persistenceId = s"${this.getClass.getSimpleName}-${id.value}"
 
+  override def preStart() = {
+    super.preStart()
+    schedulePassivationTimeout()
+  }
+
   override def preRestart(reason: Throwable, message: Option[Any]): Unit = {
     sender ! Failure(reason)
     super.preRestart(reason, message)
@@ -93,6 +104,9 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
     case eventMessage: EventMessage[Id] =>
       recoverState(eventMessage.event)
   }
+
+  override def unhandled(msg: Any): Unit =
+    handlePassivationTimeout.applyOrElse(msg, super.unhandled)
 
   /**
    * INTERNAL API.
@@ -157,6 +171,6 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
    * It is called when a command is not handled by the current command handler of the actor
    */
   def unhandledCommand(command: Command[Id]): Unit =
-    unhandled(command)
+    CommandHandler.wildcardBehavior.apply(command)
 
 }
