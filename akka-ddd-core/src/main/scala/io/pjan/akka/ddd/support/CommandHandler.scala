@@ -29,4 +29,21 @@ object CommandHandler {
 trait CommandHandler[Id <: EntityId] {
   import CommandHandler._
   def handleCommand: HandleCommand[Id]
+
+  /**
+   * Can be overridden to intercept calls to this AggregateRoot's current command handling behavior.
+   *
+   * @param handleCommand current event handling behavior.
+   * @param command current command.
+   */
+  protected[ddd] def aroundHandleCommand(handleCommand: HandleCommand[Id], command: Command[Id]): Unit =
+    handleCommand.applyOrElse(command, unhandledCommand)
+
+  /**
+   * Overridable callback
+   * <p/>
+   * It is called when a command is not handled by the current command handler of the actor
+   */
+  def unhandledCommand(command: Command[Id]): Unit =
+    CommandHandler.wildcardBehavior.apply(command)
 }
