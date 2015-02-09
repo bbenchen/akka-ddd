@@ -151,5 +151,6 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
     if (transition.isDefinedAt(event)) become(transition.apply(event))
 
   protected final def updateState(event: Event): Unit =
-    _state = Some(_state.fold(initializeState(event))(_.apply(event).asInstanceOf[State]))
+    if (isInitialized) setState(state.apply(event).asInstanceOf[State])
+    else setState(initializeState(event))
 }
