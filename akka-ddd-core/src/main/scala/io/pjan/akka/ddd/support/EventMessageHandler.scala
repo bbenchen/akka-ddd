@@ -25,18 +25,44 @@ object EventMessageHandler {
 }
 
 trait EventMessageHandler[Id <: EntityId] extends EventHandler {
+  import EventHandler._
   import EventMessageHandler._
   def handleEventMessage: HandleEventMessage[Id]
 
+  /**
+   * INTERNAL API.
+   *
+   * Can be overridden to intercept calls to this AggregateRoot's current event message handling behavior.
+   *
+   * @param handleEventMessage current event message handling behavior.
+   * @param eventMessage current event message.
+   */
   protected[ddd] def aroundHandleEventMessage(handleEventMessage: HandleEventMessage[Id], eventMessage: EventMessage[Id]): Unit =
     handleEventMessage.applyOrElse(eventMessage, unhandledEventMessage)
 
+  /**
+   * Overridable callback
+   * <p/>
+   * It is called when an event is not handled by the current event handler
+   */
   def unhandledEventMessage(eventMessage: EventMessage[Id]): Unit =
     EventMessageHandler.wildcardBehavior.apply(eventMessage)
 
-  def receiveEventMessage(emh: EventMessage[Id] => Unit)(eh: Event => Unit): PartialFunction[Any, Unit] = {
+  /**
+   * @param eventMessageHandler an event message handler
+   * @param eventHandler an event handler
+   * @return a partialFunction that handles `EventMessage`s, and applies both the eventMessageHandler and the eventHandler
+   *         on the EventMessage, and its wrapped Event respectively.
+   */
+  final def receiveEventMessage(eventMessageHandler: EventMessage[Id] => Unit)(eventHandler: Event => Unit): PartialFunction[Any, Unit] = {
     case eventMessage: EventMessage[Id] =>
-      eh(eventMessage.event)
-      emh(eventMessage)
+      eventHandler(eventMessage.event)
+      eventMessageHandler(eventMessage)
   }
+
+//  final def receiveEventMessage(handleEventMessage: HandleEventMessage[Id])(handleEvent: HandleEvent): PartialFunction[Any, Unit] = {
+//    case eventMessage: EventMessage[Id] =>
+//      aroundHandleEvent(handleEvent, eventMessage.event)
+//      aroundHandleEventMessage(handleEventMessage, eventMessage)
+//  }
 }

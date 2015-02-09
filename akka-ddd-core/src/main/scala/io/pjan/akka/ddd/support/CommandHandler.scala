@@ -42,7 +42,7 @@ trait CommandHandler[Id <: EntityId] {
   /**
    * Overridable callback
    * <p/>
-   * It is called when a command is not handled by the current command handler of the actor
+   * It is called when a command is not handled by the current command handler
    */
   def unhandledCommand(command: Command[Id]): Unit =
     CommandHandler.wildcardBehavior.apply(command)

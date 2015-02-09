@@ -28,15 +28,34 @@ trait CommandMessageHandler[Id <: EntityId] extends CommandHandler[Id] {
   import CommandMessageHandler._
   def handleCommandMessage: HandleCommandMessage[Id]
 
+  /**
+   * INTERNAL API.
+   *
+   * Can be overridden to intercept calls to this AggregateRoot's current command message handling behavior.
+   *
+   * @param handleCommandMessage current command message handling behavior.
+   * @param commandMessage current command message.
+   */
   protected[ddd] def aroundHandleCommandMessage(handleCommandMessage: HandleCommandMessage[Id], commandMessage: CommandMessage[Id]): Unit =
     handleCommandMessage.applyOrElse(commandMessage, unhandledCommandMessage)
 
+  /**
+   * Overridable callback
+   * <p/>
+   * It is called when an command message is not handled by the current command message handler
+   */
   def unhandledCommandMessage(commandMessage: CommandMessage[Id]): Unit =
     CommandMessageHandler.wildcardBehavior.apply(commandMessage)
 
-  def receiveCommandMessage(cmh: CommandMessage[Id] => Unit)(ch: Command[Id] => Unit): PartialFunction[Any, Unit] = {
+  /**
+   * @param commandMessageHandler an command message handler
+   * @param commandHandler an command handler
+   * @return a partialFunction that handles `EventMessage`s, and applies both the commandMessageHandler and the commandHandler
+   *         on the EventMessage, and its wrapped Event respectively.
+   */
+  def receiveCommandMessage(commandMessageHandler: CommandMessage[Id] => Unit)(commandHandler: Command[Id] => Unit): PartialFunction[Any, Unit] = {
     case commandMessage: CommandMessage[Id] =>
-      ch(commandMessage.command)
-      cmh(commandMessage)
+      commandHandler(commandMessage.command)
+      commandMessageHandler(commandMessage)
   }
 }

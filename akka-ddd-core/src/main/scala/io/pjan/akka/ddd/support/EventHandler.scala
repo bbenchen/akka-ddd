@@ -43,7 +43,7 @@ trait EventHandler {
   /**
    * Overridable callback
    * <p/>
-   * It is called when an event is not handled by the current event handler of the actor
+   * It is called when an event is not handled by the current event handler
    */
   def unhandledEvent(event: Event): Unit =
     EventHandler.wildcardBehavior.apply(event)
