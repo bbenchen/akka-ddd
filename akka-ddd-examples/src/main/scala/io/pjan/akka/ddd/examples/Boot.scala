@@ -2,7 +2,6 @@ package io.pjan.akka.ddd.examples
 
 import akka.actor.ActorSystem
 import io.pjan.akka.ddd.AggregateManager
-import io.pjan.akka.ddd.message.CommandMessage
 
 object Boot extends App {
 
