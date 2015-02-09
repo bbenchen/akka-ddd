@@ -54,6 +54,7 @@ class Person extends AggregateRoot[PersonId, Person.PersonState] with ActorLoggi
     case Create(personId, name) =>
       if (!isInitialized) materialize(PersonCreated(personId, name))
       else throw new RuntimeException("already initialized")
+    case _ => throw new RuntimeException("Not yet initialized")
   }
 
   def initialized: HandleCommand = {
