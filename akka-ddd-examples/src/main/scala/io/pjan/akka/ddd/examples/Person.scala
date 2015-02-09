@@ -58,7 +58,7 @@ class Person extends AggregateRoot[PersonId, Person.PersonState] with ActorLoggi
 
   def initialized: HandleCommand = {
     case ChangeName(personId, name) =>
-      println(toEventMessage(PersonNameChanged(personId, name)))
+      println(forwardedMetaDataEventMessage(PersonNameChanged(personId, name)))
       materialize(PersonNameChanged(personId, name))
     case LogState(_) =>
       log.info(state.toString)

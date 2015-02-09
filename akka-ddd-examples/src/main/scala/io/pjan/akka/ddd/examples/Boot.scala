@@ -35,18 +35,18 @@ object Boot extends App {
 
   Thread.sleep(10000)
 
-//  for (i <- Range(0,50)) {
-//    personManager ! Person.LogState(personId1)
-//    personManager ! Person.ChangeName(personId1, Name("Frank", "Peters"))
-//    personManager ! Person.LogState(personId1)
-//    personManager ! Person.ChangeName(personId1, Name("John", "Sanders"))
-//    personManager ! Person.LogState(personId1)
-//    personManager ! Person.ChangeName(personId1, Name("Alfred", "Jackson"))
-//    personManager ! Person.LogState(personId1)
-//    personManager ! Person.ChangeName(personId1, Name("Tommy", "Tiger"))
-//  }
-//
-//  Thread.sleep(10000)
+  for (i <- Range(0,50)) {
+    personManager ! Person.LogState(personId1)
+    personManager ! Person.ChangeName(personId1, Name("Frank", "Peters"))
+    personManager ! Person.LogState(personId1)
+    personManager ! Person.ChangeName(personId1, Name("John", "Sanders"))
+    personManager ! Person.LogState(personId1)
+    personManager ! Person.ChangeName(personId1, Name("Alfred", "Jackson"))
+    personManager ! Person.LogState(personId1)
+    personManager ! Person.ChangeName(personId1, Name("Tommy", "Tiger"))
+  }
+
+  Thread.sleep(10000)
 
   system.shutdown()
 

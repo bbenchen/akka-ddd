@@ -13,30 +13,40 @@ class CommandMessageHandlerSpec extends WordSpecLike
                                 with MockFactory {
 
   class TestId extends EntityId
-  class TestCommand(val aggregateId: TestId) extends Command[TestId]
+
+  sealed trait TestCommand extends Command[TestId] {
+    def testId: TestId
+    override def aggregateId: TestId = testId
+  }
+  case class HandledCommand(testId: TestId) extends TestCommand
+  case class UnhandledCommand(testId: TestId) extends TestCommand
+
+  val commandMessageHandlerMock = mockFunction[CommandMessage[TestId], Unit]
+  val commandHandlerMock  = mockFunction[Command[TestId], Unit]
 
   val testId = new TestId
-  val testCommand = new TestCommand(testId)
-  val testCommandMessage = CommandMessage(testCommand)
+  val handledCommand = HandledCommand(testId)
+  val handledCommandMessage = CommandMessage(handledCommand)
 
   object TestCommandMessageHandler extends CommandMessageHandler[TestId] {
-    def handleCommand: HandleCommand[TestId] = CommandHandler.emptyBehaviour
+    def handleCommand: HandleCommand[TestId] = {
+      case cmd @ HandledCommand(_) => commandHandlerMock(cmd)
+    }
 
-    override def handleCommandMessage: HandleCommandMessage[TestId] = CommandMessageHandler.wildcardBehavior
+    def handleCommandMessage: HandleCommandMessage[TestId] = {
+      case cmdMsg @ CommandMessage(cmd: HandledCommand, _, _, _) => commandMessageHandlerMock(cmdMsg)
+    }
   }
-
-  val cmh = mockFunction[CommandMessage[TestId], Unit]
-  val ch  = mockFunction[Command[TestId], Unit]
 
   "#receiveCommandMessage" when {
     "invoked with a CommandMessageHandler and CommandHandler" should {
       "return a function that invokes both" in {
-        val f = TestCommandMessageHandler.receiveCommandMessage(cmh)(ch)
+        val f = TestCommandMessageHandler.receiveCommandMessage(commandMessageHandlerMock)(commandHandlerMock)
 
-        cmh expects testCommandMessage
-        ch expects testCommand
+        commandMessageHandlerMock expects handledCommandMessage
+        commandHandlerMock expects handledCommand
 
-        f(testCommandMessage)
+        f(handledCommandMessage)
       }
     }
   }

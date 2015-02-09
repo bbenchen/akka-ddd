@@ -48,6 +48,7 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
       with AggregateStateKeeper[State]
       with CommandMessageHandler[Id]
       with EventMessageHandler[Id]
+      with MessageMetaDataForwarding[Id]
       with StateTransitions[Id]
       with Passivation {
 
@@ -75,7 +76,7 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
    * and calls the handleEvent behavior on the encapsulated event.
    */
   def handleEventMessage: HandleEventMessage =
-    receiveEventMessage(em => ()){ e: Event =>
+    receiveEventMessage(EventMessageHandler.wildcardBehavior){ e: Event =>
       updateState(e)
       becomeByTransition(e)
       aroundHandleEvent(handleEvent, e)
@@ -113,7 +114,7 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
   }
 
   private def persistAsEventMessage(event: Event)(cb: EventMessage[Id] => Unit): Unit =
-    persist(toEventMessage(event))(cb)
+    persist(forwardedMetaDataEventMessage(event, Some(SnapshotId(id, lastSequenceNr))))(cb)
 
   override def persistenceId = s"${this.getClass.getSimpleName}-${id.value}"
 
@@ -132,7 +133,7 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
   }
 
   override def receiveRecover: Actor.Receive = {
-    receiveEventMessage(e => ()){ e: Event =>
+    receiveEventMessage(EventMessageHandler.wildcardBehavior){ e: Event =>
       updateState(e)
       becomeByTransition(e)
     }
@@ -141,8 +142,8 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
   override def unhandled(msg: Any): Unit =
     handlePassivationTimeout.applyOrElse(msg, super.unhandled)
 
-  protected final def become(handleCommand: HandleCommand): Unit =
-    context.become(receiveCommandMessage(updateLastCommandMessage){ c: Command[Id] =>
+  protected final def become(handleCommand: HandleCommand): Unit = context.become(
+    receiveCommandMessage(updateLastCommandMessage){ c: Command[Id] =>
       aroundHandleCommand(handleCommand, c)
     })
 
@@ -151,12 +152,4 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
 
   protected final def updateState(event: Event): Unit =
     _state = Some(_state.fold(initializeState(event))(_.apply(event).asInstanceOf[State]))
-
-  private var _lastCommandMessage: Option[CommandMessage[Id]] = None
-
-  protected final def updateLastCommandMessage(commandMessage: CommandMessage[Id]): Unit =
-    _lastCommandMessage = Some(commandMessage)
-
-  protected def toEventMessage(event: Event): EventMessage[Id] =
-    _lastCommandMessage.fold(EventMessage[Id](event, Some(SnapshotId(id, lastSequenceNr))))(cmd => EventMessage(event, Some(SnapshotId(id, lastSequenceNr))).withMetaData(cmd.metaData))
 }
