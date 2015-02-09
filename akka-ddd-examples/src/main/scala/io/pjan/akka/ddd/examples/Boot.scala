@@ -1,31 +1,51 @@
 package io.pjan.akka.ddd.examples
 
 import akka.actor.ActorSystem
-import io.pjan.akka.ddd.message.CommandMessage
+import io.pjan.akka.ddd.AggregateManager
 
 object Boot extends App {
 
   implicit val system = ActorSystem("access")
 
-  val personId = PersonId(java.util.UUID.randomUUID())
-  val person = system.actorOf(Person.props(), personId.value.toString)
+  val personManager = AggregateManager[Person]
 
-  person ! CommandMessage(Person.Create(personId, Name("Pete", "Anderson", Some("black"))))
+  val personId1 = PersonId(java.util.UUID.randomUUID())
+  val personId2 = PersonId(java.util.UUID.randomUUID())
+  //  val person = system.actorOf(Person.props(), personId.value.toString)
+
+  personManager ! Person.Create(personId1, Name("Pete", "Anderson", Some("black")))
+  personManager ! Person.Create(personId2, Name("Pete", "Anderson", Some("black")))
+
+  personManager ! Person.Create(personId1, Name("Pete", "Anderson", Some("black")))
 
   for (i <- Range(0,50)) {
-    person ! CommandMessage(Person.LogState(personId))
-    person ! CommandMessage(Person.ChangeName(personId, Name("Frank", "Peters"))).withMetaData(Map("trace" -> 1))
-    person ! CommandMessage(Person.LogState(personId))
-    person ! CommandMessage(Person.ChangeName(personId, Name("John", "Sanders")))
-    person ! CommandMessage(Person.LogState(personId))
-    person ! CommandMessage(Person.ChangeName(personId, Name("Alfred", "Jackson")))
-    person ! CommandMessage(Person.LogState(personId))
-    person ! CommandMessage(Person.ChangeName(personId, Name("Tommy", "Tiger")))
+    personManager ! Person.LogState(personId1)
+    personManager ! Person.ChangeName(personId1, Name("Frank", "Peters"))
+    personManager ! Person.LogState(personId1)
+    personManager ! Person.ChangeName(personId1, Name("John", "Sanders"))
+    personManager ! Person.LogState(personId1)
+    personManager ! Person.ChangeName(personId1, Name("Alfred", "Jackson"))
+    personManager ! Person.LogState(personId1)
+    personManager ! Person.ChangeName(personId1, Name("Tommy", "Tiger"))
   }
 
-  person ! CommandMessage(Person.LogState(personId))
+  personManager ! Person.ChangeName(personId2, Name("Freddy", "Johnson"))
+  personManager ! Person.LogState(personId2)
 
-  Thread.sleep(5000)
+  Thread.sleep(10000)
+
+  for (i <- Range(0,50)) {
+    personManager ! Person.LogState(personId1)
+    personManager ! Person.ChangeName(personId1, Name("Frank", "Peters"))
+    personManager ! Person.LogState(personId1)
+    personManager ! Person.ChangeName(personId1, Name("John", "Sanders"))
+    personManager ! Person.LogState(personId1)
+    personManager ! Person.ChangeName(personId1, Name("Alfred", "Jackson"))
+    personManager ! Person.LogState(personId1)
+    personManager ! Person.ChangeName(personId1, Name("Tommy", "Tiger"))
+  }
+
+  Thread.sleep(10000)
 
   system.shutdown()
 

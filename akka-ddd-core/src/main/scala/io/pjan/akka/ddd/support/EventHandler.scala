@@ -28,4 +28,23 @@ object EventHandler {
 trait EventHandler {
   import EventHandler._
   def handleEvent: HandleEvent
+
+  /**
+   * INTERNAL API.
+   *
+   * Can be overridden to intercept calls to this AggregateRoot's current event handling behavior.
+   *
+   * @param handleEvent current event handling behavior.
+   * @param event current event.
+   */
+  protected[ddd] def aroundHandleEvent(handleEvent: HandleEvent, event: Event): Unit =
+    handleEvent.applyOrElse(event, unhandledEvent)
+
+  /**
+   * Overridable callback
+   * <p/>
+   * It is called when an event is not handled by the current event handler
+   */
+  def unhandledEvent(event: Event): Unit =
+    EventHandler.wildcardBehavior.apply(event)
 }
