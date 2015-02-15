@@ -2,9 +2,8 @@ package io.pjan.akka.ddd.message
 
 import java.time.ZonedDateTime
 import java.util.UUID
-
-import io.pjan.akka.ddd.EntityId
 import io.pjan.akka.ddd.command.Command
+import io.pjan.akka.ddd.identifier.EntityId
 import io.pjan.akka.ddd.macros.MetaDataOps
 import io.pjan.akka.ddd.message.Message.MetaData
 

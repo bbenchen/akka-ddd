@@ -5,6 +5,7 @@ import akka.actor.Status.Failure
 import akka.persistence.PersistentActor
 import io.pjan.akka.ddd.command.Command
 import io.pjan.akka.ddd.event.Event
+import io.pjan.akka.ddd.identifier.AggregateId
 import io.pjan.akka.ddd.message._
 import io.pjan.akka.ddd.state.AggregateState
 import io.pjan.akka.ddd.support.Passivation.PassivationConfig

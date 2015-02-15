@@ -1,5 +1,6 @@
 package io.pjan.akka.ddd
 
+import io.pjan.akka.ddd.identifier.EntityId
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{Matchers, WordSpecLike}
 

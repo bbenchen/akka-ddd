@@ -3,9 +3,11 @@ package io.pjan.akka.ddd.support
 import java.util.UUID
 import java.time.ZonedDateTime
 
-import io.pjan.akka.ddd.{SnapshotId, EntityId}
+import io.pjan.akka.ddd.identifier.EntityId
+import io.pjan.akka.ddd.SnapshotId
 import io.pjan.akka.ddd.event.Event
 import io.pjan.akka.ddd.message.{EventMessage, CommandMessage}
+
 
 trait MessageMetaDataForwarding[Id <: EntityId] {
   this: CommandMessageHandler[Id] with EventMessageHandler[Id] =>

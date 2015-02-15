@@ -1,7 +1,7 @@
 package io.pjan.akka.ddd.support
 
-import io.pjan.akka.ddd.EntityId
 import io.pjan.akka.ddd.command.Command
+import io.pjan.akka.ddd.identifier.EntityId
 import io.pjan.akka.ddd.message.CommandMessage
 import io.pjan.akka.ddd.support.CommandHandler.HandleCommand
 import io.pjan.akka.ddd.support.CommandMessageHandler.HandleCommandMessage

@@ -1,13 +1,13 @@
 package io.pjan.akka.ddd.support
 
-import akka.actor.{ReceiveTimeout, Actor, PoisonPill}
+import akka.actor.{ReceiveTimeout, Actor}
 import scala.concurrent.duration._
 
 
 object Passivation {
-  case class Passivate(message: Any)
+  type PassivationMessage = Any
 
-  case class PassivationConfig(message: Any = PoisonPill, timeout: Duration = 1.hour)
+  case class PassivationConfig(message: PassivationMessage, timeout: Duration = 1.hour)
 }
 
 trait Passivation {
@@ -22,7 +22,6 @@ trait Passivation {
 
   def handlePassivationTimeout: PartialFunction[Any, Unit] = {
     case ReceiveTimeout =>
-      context.parent ! Passivate(passivationConfig.message)
+      context.parent ! passivationConfig.message
   }
-
 }

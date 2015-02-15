@@ -1,7 +1,8 @@
 package io.pjan.akka.ddd.support
 
-import io.pjan.akka.ddd.EntityId
 import io.pjan.akka.ddd.event.Event
+import io.pjan.akka.ddd.identifier.EntityId
+
 
 object StateTransitions {
   /**

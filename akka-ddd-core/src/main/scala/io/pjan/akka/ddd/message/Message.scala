@@ -1,6 +1,6 @@
 package io.pjan.akka.ddd.message
 
-import io.pjan.akka.ddd.EntityId
+import io.pjan.akka.ddd.identifier.EntityId
 
 
 object Message {

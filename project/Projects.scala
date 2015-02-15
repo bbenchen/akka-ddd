@@ -34,9 +34,27 @@ object Projects extends Build {
     .settings(assemblySettings: _*)
     .settings(
       libraryDependencies ++=
-        compile(typesafeConfig, akkaActor, akkaContrib, akkaPersistence, akkaSlf4j) ++
+        compile(typesafeConfig, akkaActor, akkaPersistence) ++
         test(scalaTest, scalaCheck, scalaMock, akkaTest)
     ).dependsOn(`akka-ddd-macros`)
+
+  lazy val `akka-ddd-local` = module("local", basicSettings)
+    .settings(unidocSettings: _*)
+    .settings(assemblySettings: _*)
+    .settings(
+      libraryDependencies ++=
+        compile(typesafeConfig, akkaActor) ++
+        test(scalaTest, scalaCheck, scalaMock, akkaTest)
+    ).dependsOn(`akka-ddd-core`)
+
+  lazy val `akka-ddd-cluster` = module("cluster", basicSettings)
+    .settings(unidocSettings: _*)
+    .settings(assemblySettings: _*)
+    .settings(
+      libraryDependencies ++=
+        compile(typesafeConfig, akkaActor, akkaContrib) ++
+        test(scalaTest, scalaCheck, scalaMock, akkaTest)
+    ).dependsOn(`akka-ddd-core`)
 
   lazy val `akka-ddd-examples` = module("examples", basicSettings)
     .settings(noPublishing: _*)
@@ -45,7 +63,9 @@ object Projects extends Build {
         compile(typesafeConfig, logback, akkaActor, akkaContrib, akkaPersistence, akkaSlf4j) ++
         test(scalaTest, scalaCheck, scalaMock, akkaTest)
     ).dependsOn(
-      `akka-ddd-core` % "test->test;compile->compile"
+      `akka-ddd-core` % "test->test;compile->compile",
+      `akka-ddd-local` % "test->test;compile->compile",
+      `akka-ddd-cluster` % "test->test;compile->compile"
     )
 
   def module(name: String, basicSettings: Seq[Setting[_]]): Project = {

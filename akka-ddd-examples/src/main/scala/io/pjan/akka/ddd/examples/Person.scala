@@ -1,16 +1,16 @@
 package io.pjan.akka.ddd.examples
 
-import akka.actor.{PoisonPill, ActorLogging, Props}
+import akka.actor.ActorLogging
 import io.pjan.akka.ddd._
+import io.pjan.akka.ddd.identifier.AggregateUuid
 import io.pjan.akka.ddd.state.AggregateState
-import io.pjan.akka.ddd.support.Passivation.{Passivate, PassivationConfig}
-
-import scala.concurrent.duration._
+import io.pjan.akka.ddd.support.Passivation.PassivationConfig
 
 
 case class PersonId(value: java.util.UUID) extends AggregateUuid
 
 object Person {
+  // Commands
   sealed trait Command extends command.Command[PersonId] {
     def personId: PersonId
     override def aggregateId: PersonId = personId
@@ -18,25 +18,25 @@ object Person {
   case class Create(personId: PersonId, name: Name) extends Command
   case class ChangeName(personId: PersonId, name: Name) extends Command
   case class LogState(personId: PersonId) extends Command
+  case class Boom(personId: PersonId) extends Command
 
+  // Events
   sealed trait Event extends event.Event
   case class PersonCreated(personId: PersonId, name: Name) extends Event
   case class PersonNameChanged(personId: PersonId, name: Name) extends Event
 
+  // State
   case class PersonState(id: PersonId, name: Name) extends AggregateState {
     override def apply: AggregateState.StateTransitions = {
       case PersonNameChanged(_, newName) => copy(name = newName)
     }
   }
-
-  def apply(): Person = new Person()
-  def props(): Props = Props(Person())
 }
 
-class Person extends AggregateRoot[PersonId, Person.PersonState] with ActorLogging {
+class Person(val passivationConfig: PassivationConfig)
+    extends AggregateRoot[PersonId, Person.PersonState]
+    with ActorLogging {
   import Person._
-
-  override def passivationConfig: PassivationConfig = PassivationConfig(timeout = 5.seconds)
 
   val id: PersonId = PersonId(java.util.UUID.fromString(self.path.name))
 
@@ -59,9 +59,10 @@ class Person extends AggregateRoot[PersonId, Person.PersonState] with ActorLoggi
 
   def initialized: HandleCommand = {
     case ChangeName(personId, name) =>
-      println(forwardedMetaDataEventMessage(PersonNameChanged(personId, name)))
       materialize(PersonNameChanged(personId, name))
     case LogState(_) =>
-      log.info(state.toString)
+      log.info(s"${state.toString}")
+    case Boom(personId) =>
+      throw new RuntimeException(s"boom for $personId")
   }
 }

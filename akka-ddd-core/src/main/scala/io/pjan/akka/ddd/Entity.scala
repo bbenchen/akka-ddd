@@ -1,5 +1,8 @@
 package io.pjan.akka.ddd
 
+import io.pjan.akka.ddd.identifier.EntityId
+
+
 trait Entity[Id <: EntityId] {
   val id: Id
 
