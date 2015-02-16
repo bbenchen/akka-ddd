@@ -24,6 +24,14 @@ class CommandMessageHandlerSpec extends WordSpecLike
   val commandMessageHandlerMock = mockFunction[CommandMessage[TestId], Unit]
   val commandHandlerMock  = mockFunction[Command[TestId], Unit]
 
+  val handleCommandMessageMock: HandleCommandMessage[TestId] = {
+    case cmdMsg: CommandMessage[TestId] => commandMessageHandlerMock(cmdMsg)
+  }
+
+  val handleCommandMock: HandleCommand[TestId] = {
+    case cmd: Command[TestId] => commandHandlerMock(cmd)
+  }
+
   val testId = new TestId
   val handledCommand = HandledCommand(testId)
   val handledCommandMessage = CommandMessage(handledCommand)
@@ -41,7 +49,7 @@ class CommandMessageHandlerSpec extends WordSpecLike
   "#receiveCommandMessage" when {
     "invoked with a CommandMessageHandler and CommandHandler" should {
       "return a function that invokes both" in {
-        val f = TestCommandMessageHandler.receiveCommandMessage(commandMessageHandlerMock)(commandHandlerMock)
+        val f = TestCommandMessageHandler.receiveCommandMessage(handleCommandMessageMock)(handleCommandMock)
 
         commandMessageHandlerMock expects handledCommandMessage
         commandHandlerMock expects handledCommand
