@@ -59,7 +59,4 @@ trait EventMessageHandler[Id <: EntityId] extends EventHandler {
       aroundHandleEventMessage(handleEventMessage, evtMsg)
       aroundHandleEvent(handleEvent, evtMsg.event)
   }
-
-  def receiveEventMessage(handleEvent: HandleEvent): PartialFunction[Any, Unit] =
-    receiveEventMessage(EventMessageHandler.wildcardBehavior[Id])(handleEvent)
 }

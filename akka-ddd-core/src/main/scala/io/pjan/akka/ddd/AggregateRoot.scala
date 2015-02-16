@@ -76,11 +76,8 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
    * changes its command handling behaviour based on the Transition,
    * and calls the handleEvent behavior on the encapsulated event.
    */
-  def handleEventMessage: HandleEventMessage = receiveEventMessage {
-    case e: Event =>
-      updateState(e)
-      becomeByTransition(e)
-      aroundHandleEvent(handleEvent, e)
+  def handleEventMessage: HandleEventMessage = {
+    case evtMsg: EventMessage[Id] => updateStateAndBecomeByTransition(evtMsg.event)
   }
 
   /**
@@ -107,14 +104,13 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
 
   def passivationConfig: PassivationConfig
 
-  def materialize(event: Event): Unit = {
-    persistAsEventMessage(event) {
-      e: EventMessage[Id] => handleEventMessage(e)
-    }
+  def materialize(event: Event): Unit = persistAsEventMessage(event) {
+    case evtMsg: EventMessage[Id] =>
+      receiveEventMessage(handleEventMessage)(handleEvent)(evtMsg)
   }
 
-  private def persistAsEventMessage(event: Event)(cb: EventMessage[Id] => Unit): Unit =
-    persist(forwardedMetaDataEventMessage(event, Some(SnapshotId(id, lastSequenceNr))))(cb)
+  private def persistAsEventMessage(event: Event)(handleEventMessage: HandleEventMessage): Unit =
+    persist(forwardedMetaDataEventMessage(event, Some(SnapshotId(id, lastSequenceNr))))(handleEventMessage)
 
   override def persistenceId = s"${this.getClass.getSimpleName}-${id.value}"
 
@@ -132,10 +128,8 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
     case cmdMsg: CommandMessage[Id] => receiveCommandMessage(handleCommandMessage)(handleCommand)(cmdMsg)
   }
 
-  override def receiveRecover: Actor.Receive = receiveEventMessage {
-    case e: Event =>
-      updateState(e)
-      becomeByTransition(e)
+  override def receiveRecover: Actor.Receive = {
+    case evtMsg: EventMessage[Id] => receiveEventMessage(handleEventMessage)(EventHandler.emptyBehaviour)(evtMsg)
   }
 
   override def unhandled(msg: Any): Unit =
@@ -150,4 +144,9 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
   protected final def updateState(event: Event): Unit =
     if (isInitialized) setState(state.apply(event).asInstanceOf[State])
     else setState(initializeState(event))
+
+  protected final def updateStateAndBecomeByTransition(event: Event): Unit = {
+    updateState(event)
+    becomeByTransition(event)
+  }
 }
