@@ -76,12 +76,12 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
    * changes its command handling behaviour based on the Transition,
    * and calls the handleEvent behavior on the encapsulated event.
    */
-  def handleEventMessage: HandleEventMessage =
-    receiveEventMessage(EventMessageHandler.wildcardBehavior){ e: Event =>
+  def handleEventMessage: HandleEventMessage = receiveEventMessage {
+    case e: Event =>
       updateState(e)
       becomeByTransition(e)
       aroundHandleEvent(handleEvent, e)
-    }
+  }
 
   /**
    * This defines the AggregateRoot's command handling behavior.
@@ -132,11 +132,10 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
     case cmdMsg: CommandMessage[Id] => receiveCommandMessage(handleCommandMessage)(handleCommand)(cmdMsg)
   }
 
-  override def receiveRecover: Actor.Receive = {
-    receiveEventMessage(EventMessageHandler.wildcardBehavior){ e: Event =>
+  override def receiveRecover: Actor.Receive = receiveEventMessage {
+    case e: Event =>
       updateState(e)
       becomeByTransition(e)
-    }
   }
 
   override def unhandled(msg: Any): Unit =

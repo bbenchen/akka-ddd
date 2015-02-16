@@ -49,20 +49,17 @@ trait EventMessageHandler[Id <: EntityId] extends EventHandler {
     EventMessageHandler.wildcardBehavior.apply(eventMessage)
 
   /**
-   * @param eventMessageHandler an event message handler
-   * @param eventHandler an event handler
-   * @return a partialFunction that handles `EventMessage`s, and applies both the eventMessageHandler and the eventHandler
-   *         on the EventMessage, and its wrapped Event respectively.
+   * @param handleEventMessage a [[HandleEventMessage]] instance
+   * @param handleEvent a [[HandleEvent]] instance
+   * @return a partialFunction that handles `EventMessage`s, and applies both the handleEventMessage and the handleEvent, wrapped
+   *         with their respective aroundHandleEventMessage and aroundHandleEvent in scope.
    */
-  final def receiveEventMessage(eventMessageHandler: EventMessage[Id] => Unit)(eventHandler: Event => Unit): PartialFunction[Any, Unit] = {
-    case eventMessage: EventMessage[Id] =>
-      eventHandler(eventMessage.event)
-      eventMessageHandler(eventMessage)
+  def receiveEventMessage(handleEventMessage: HandleEventMessage[Id])(handleEvent: HandleEvent): PartialFunction[Any, Unit] = {
+    case evtMsg: EventMessage[Id] =>
+      aroundHandleEventMessage(handleEventMessage, evtMsg)
+      aroundHandleEvent(handleEvent, evtMsg.event)
   }
 
-//  final def receiveEventMessage(handleEventMessage: HandleEventMessage[Id])(handleEvent: HandleEvent): PartialFunction[Any, Unit] = {
-//    case eventMessage: EventMessage[Id] =>
-//      aroundHandleEvent(handleEvent, eventMessage.event)
-//      aroundHandleEventMessage(handleEventMessage, eventMessage)
-//  }
+  def receiveEventMessage(handleEvent: HandleEvent): PartialFunction[Any, Unit] =
+    receiveEventMessage(EventMessageHandler.wildcardBehavior[Id])(handleEvent)
 }
