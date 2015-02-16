@@ -95,10 +95,9 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
    * and defaults to a behaviour where it updates the internal cached last command message,
    * and calls the handleCommand behavior on the encapsulated event.
    */
-  def handleCommandMessage: HandleCommandMessage =
-    receiveCommandMessage(updateLastCommandMessage){ c: Command[Id] =>
-      aroundHandleCommand(handleCommand, c)
-    }
+  def handleCommandMessage: HandleCommandMessage = {
+    case cmdMsg: CommandMessage[Id] => updateLastCommandMessage(cmdMsg)
+  }
 
   /**
    * This defines the AggregateRoot's event-based command handling transitions.
@@ -129,8 +128,8 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
     super.preRestart(reason, message)
   }
 
-  override def receiveCommand: Actor.Receive = {
-    handleCommandMessage.asInstanceOf[Actor.Receive]
+  def receiveCommand: Actor.Receive = {
+    case cmdMsg: CommandMessage[Id] => receiveCommandMessage(handleCommandMessage)(handleCommand)(cmdMsg)
   }
 
   override def receiveRecover: Actor.Receive = {
@@ -144,9 +143,7 @@ trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends Persi
     handlePassivationTimeout.applyOrElse(msg, super.unhandled)
 
   protected final def become(handleCommand: HandleCommand): Unit = context.become(
-    receiveCommandMessage(updateLastCommandMessage){ c: Command[Id] =>
-      aroundHandleCommand(handleCommand, c)
-    })
+    receiveCommandMessage(handleCommandMessage)(handleCommand))
 
   protected final def becomeByTransition(event: Event): Unit =
     if (transition.isDefinedAt(event)) become(transition.apply(event))

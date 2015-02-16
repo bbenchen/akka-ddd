@@ -25,6 +25,7 @@ object CommandMessageHandler {
 }
 
 trait CommandMessageHandler[Id <: EntityId] extends CommandHandler[Id] {
+  import CommandHandler._
   import CommandMessageHandler._
   def handleCommandMessage: HandleCommandMessage[Id]
 
@@ -48,14 +49,14 @@ trait CommandMessageHandler[Id <: EntityId] extends CommandHandler[Id] {
     CommandMessageHandler.wildcardBehavior.apply(commandMessage)
 
   /**
-   * @param commandMessageHandler an command message handler
-   * @param commandHandler an command handler
-   * @return a partialFunction that handles `EventMessage`s, and applies both the commandMessageHandler and the commandHandler
-   *         on the EventMessage, and its wrapped Event respectively.
+   * @param handleCommandMessage a [[HandleCommandMessage]] instance
+   * @param handleCommand a [[HandleCommand]] instance
+   * @return a partialFunction that handles `EventMessage`s, and applies both the handleCommandMessage and the handleCommand, wrapped
+   *         with their respective aroundHandleCommandMessage and aroundHandleCommand in scope.
    */
-  def receiveCommandMessage(commandMessageHandler: CommandMessage[Id] => Unit)(commandHandler: Command[Id] => Unit): PartialFunction[Any, Unit] = {
-    case commandMessage: CommandMessage[Id] =>
-      commandHandler(commandMessage.command)
-      commandMessageHandler(commandMessage)
+  def receiveCommandMessage(handleCommandMessage: HandleCommandMessage[Id])(handleCommand: HandleCommand[Id]): PartialFunction[Any, Unit] = {
+    case cmdMsg: CommandMessage[Id] =>
+      aroundHandleCommandMessage(handleCommandMessage, cmdMsg)
+      aroundHandleCommand(handleCommand, cmdMsg.command)
   }
 }
