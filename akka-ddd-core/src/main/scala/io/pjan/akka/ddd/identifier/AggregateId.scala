@@ -1,5 +1,6 @@
 package io.pjan.akka.ddd.identifier
 
-trait AggregateId[T] extends EntityId {
-  def value: T
+trait AggregateId extends EntityId {
+  def value: String
+  override def toString = value
 }

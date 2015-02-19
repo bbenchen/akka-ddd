@@ -3,13 +3,14 @@ package io.pjan.akka.ddd
 import akka.actor.Actor
 import akka.actor.Status.Failure
 import akka.persistence.PersistentActor
-import io.pjan.akka.ddd.command.Command
 import io.pjan.akka.ddd.event.Event
 import io.pjan.akka.ddd.identifier.AggregateId
 import io.pjan.akka.ddd.message._
 import io.pjan.akka.ddd.state.AggregateState
 import io.pjan.akka.ddd.support.Passivation.PassivationConfig
 import io.pjan.akka.ddd.support._
+
+import scala.reflect.ClassTag
 
 
 object AggregateRoot {
@@ -26,25 +27,25 @@ object AggregateRoot {
   /**
    * Type alias representing a HandleEventMessage-expression for an AggregateRoot.
    */
-  type HandleEventMessage[Id <: AggregateId[_]] = EventMessageHandler.HandleEventMessage[Id]
+  type HandleEventMessage[Id <: AggregateId] = EventMessageHandler.HandleEventMessage[Id]
 
   /**
    * Type alias representing a HandleCommand-expression for an AggregateRoot.
    */
-  type HandleCommand[Id <: AggregateId[_]] = CommandHandler.HandleCommand[Id]
+  type HandleCommand[Id <: AggregateId] = CommandHandler.HandleCommand[Id]
 
   /**
    * Type alias representing a HandleCommandMessage-expression for an AggregateRoot.
    */
-  type HandleCommandMessage[Id <: AggregateId[_]] = CommandMessageHandler.HandleCommandMessage[Id]
+  type HandleCommandMessage[Id <: AggregateId] = CommandMessageHandler.HandleCommandMessage[Id]
 
   /**
    * Type alias representing a Transition-expression for an AggregateRoot.
    */
-  type Transition[Id <: AggregateId[_]] = StateTransitions.Transition[Id]
+  type Transition[Id <: AggregateId] = StateTransitions.Transition[Id]
 }
 
-trait AggregateRoot[Id <: AggregateId[_], State <: AggregateState] extends PersistentActor
+trait AggregateRoot[Id <: AggregateId, State <: AggregateState] extends PersistentActor
       with Entity[Id]
       with AggregateStateKeeper[State]
       with CommandMessageHandler[Id]

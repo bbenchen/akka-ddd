@@ -10,8 +10,8 @@ object Boot extends App {
 
   val personManager = Domain(system).aggregateManagerOf[Person]
 
-  val personId1 = PersonId(java.util.UUID.randomUUID())
-  val personId2 = PersonId(java.util.UUID.randomUUID())
+  val personId1 = PersonId(java.util.UUID.randomUUID().toString)
+  val personId2 = PersonId(java.util.UUID.randomUUID().toString)
 
   personManager ! Person.Create(personId1, Name("Pete", "Anderson", Some("black")))
   personManager ! Person.Create(personId2, Name("Pete", "Anderson", Some("black")))

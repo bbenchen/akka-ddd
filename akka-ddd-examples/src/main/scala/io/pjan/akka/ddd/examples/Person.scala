@@ -2,12 +2,12 @@ package io.pjan.akka.ddd.examples
 
 import akka.actor.ActorLogging
 import io.pjan.akka.ddd._
-import io.pjan.akka.ddd.identifier.AggregateUuid
+import io.pjan.akka.ddd.identifier.AggregateId
 import io.pjan.akka.ddd.state.AggregateState
 import io.pjan.akka.ddd.support.Passivation.PassivationConfig
 
 
-case class PersonId(value: java.util.UUID) extends AggregateUuid
+case class PersonId(value: String) extends AggregateId
 
 object Person {
   // Commands
@@ -38,7 +38,7 @@ class Person(val passivationConfig: PassivationConfig)
     with ActorLogging {
   import Person._
 
-  val id: PersonId = PersonId(java.util.UUID.fromString(self.path.name))
+  val id: PersonId = PersonId(self.path.name)
 
   override def initializeState: InitializeState = {
     case PersonCreated(personId, name) => PersonState(personId, name)
