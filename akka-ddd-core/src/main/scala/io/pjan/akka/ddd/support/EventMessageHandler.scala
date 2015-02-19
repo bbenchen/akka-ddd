@@ -49,7 +49,7 @@ trait EventMessageHandler[Id <: EntityId] extends EventHandler {
     EventMessageHandler.wildcardBehavior.apply(eventMessage)
 
   /**
-   * @param handleEventMessage a [[HandleEventMessage]] instance
+   * @param handleEventMessage a HandleEventMessage instance
    * @param handleEvent a [[HandleEvent]] instance
    * @return a partialFunction that handles `EventMessage`s, and applies both the handleEventMessage and the handleEvent, wrapped
    *         with their respective aroundHandleEventMessage and aroundHandleEvent in scope.

@@ -49,7 +49,7 @@ trait CommandMessageHandler[Id <: EntityId] extends CommandHandler[Id] {
     CommandMessageHandler.wildcardBehavior.apply(commandMessage)
 
   /**
-   * @param handleCommandMessage a [[HandleCommandMessage]] instance
+   * @param handleCommandMessage a HandleCommandMessage instance
    * @param handleCommand a [[HandleCommand]] instance
    * @return a partialFunction that handles `EventMessage`s, and applies both the handleCommandMessage and the handleCommand, wrapped
    *         with their respective aroundHandleCommandMessage and aroundHandleCommand in scope.
