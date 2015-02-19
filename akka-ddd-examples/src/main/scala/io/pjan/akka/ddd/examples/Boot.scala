@@ -6,7 +6,7 @@ import io.pjan.akka.ddd._
 
 object Boot extends App {
 
-  implicit val system = ActorSystem("AccessSystem", ConfigFactory.load("local.conf"))
+  implicit val system = ActorSystem("AccessSystem", ConfigFactory.load("cluster.conf"))
 
   val personManager = Domain(system).aggregateManagerOf[Person]
 
